@@ -21,7 +21,7 @@ from requests.adapters import HTTPAdapter, Retry
 
 class VSCUpdateDefinition(object):
 
-    def __init__(self, platform=None, architecture=None, buildtype=None, quality=None,
+    def init(self, platform=None, architecture=None, buildtype=None, quality=None,
                  updateurl=None, name=None, version=None, productVersion=None,
                  hashs=None, timestamp=None, sha256hash=None, supportsFastUpdate=None):
 
@@ -341,6 +341,8 @@ class VSCUpdates(object):
             for architecture in vsc.ARCHITECTURES:
                 for buildtype in vsc.BUILDTYPES:
                     for quality in vsc.QUALITIES:
+                        if platform != 'linux-x64' or platform != 'x64':
+                            continue
                         if quality == 'insider' and not insider:
                             continue
                         if platform == 'win32' and architecture == 'ia32':
@@ -757,27 +759,36 @@ if __name__ == '__main__':
             log.info('Syncing VS Code Update Versions')
             versions = VSCUpdates.latest_versions(config.checkinsider)
 
-        if config.updatebinaries and not config.skipbinaries:
-            log.info('Syncing VS Code Binaries')
-            for idkey in versions:
-                if versions[idkey].updateurl:
-                    result = versions[idkey].download_update(
-                        config.artifactdir_installers)
+        # if config.updatebinaries and not config.skipbinaries:
+        #     log.info('Syncing VS Code Binaries')
+        #     for idkey in versions:
+        #         if versions[idkey].updateurl:
+        #             result = versions[idkey].download_update(
+        #                 config.artifactdir_installers)
 
-                    # Only save the reference json if the download was successful
-                    if result:
-                        versions[idkey].save_state(
-                            config.artifactdir_installers)
+        #             # Only save the reference json if the download was successful
+        #             if result:
+        #                 versions[idkey].save_state(
+        #                     config.artifactdir_installers)
 
         if config.checkspecified:
             log.info('Syncing VS Code Specified Extensions')
-            specifiedpath = os.path.join(os.path.abspath(
-                config.artifactdir), 'specified.json')
+            specifiedpath = os.path.join(os.path.abspath(config.artifactdir), 'specified.json')
             specified = mp.get_specified(specifiedpath)
             if specified:
                 for item in specified:
-                    log.info(item)
-                    extensions[item.identity] = item
+                    # Filter versions for linux-x64 or any (multi-platform)
+                    filtered_versions = []
+                    for version in item.versions:
+                        tp = version.get('targetPlatform', None)
+                        if tp in ('linux-x64', 'any', None):
+                            filtered_versions.append(version)
+                    if filtered_versions:
+                        item.versions = filtered_versions
+                        log.info(f"Syncing {item.identity} for platforms {[v.get('targetPlatform', None) for v in filtered_versions]}")
+                        extensions[item.identity] = item
+                    else:
+                        log.info(f"Skipping {item.identity}: no linux-x64 or multi-platform version found")
 
         if config.extensionsearch:
             log.info(

@@ -10,4 +10,4 @@ RUN pip install --no-cache-dir -r vscsync/requirements.txt
 ENV ARTIFACTS=/artifacts
 ENV SYNCARGS=--sync
 
-CMD python3 sync.py --artifacts $ARTIFACTS $SYNCARGS
+CMD ["python3", "sync.py", "--artifacts", "/artifacts", "--check-specified-extensions", "--update-extensions", "--skip-binaries"]
