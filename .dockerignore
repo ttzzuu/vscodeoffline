@@ -1,4 +1,6 @@
 artifacts/
 
 __pycache__/
-https://copilot.microsoft.com/shares/c7wxj8tMUwCBumLLwBkYs
+https://youtrack.jetbrains.com/articles/SUPPORT-A-258/IDE-backend-isnt-downloaded-correctly-when-building-dev-containers#:~:text=start%20building%20the%20dev%20container,IDE%20backend%20archive%20downloaded%20before%3B
+
+devcontainers.use.separate.project.panel
